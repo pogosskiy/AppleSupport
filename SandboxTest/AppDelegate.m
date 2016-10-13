@@ -13,53 +13,55 @@
 
 @interface AppDelegate ()
 @property (strong) NSString* path;
-@property (weak) IBOutlet NSWindow *window;
+@property (weak) IBOutlet NSWindow* window;
 @end
 
 @implementation AppDelegate{
+	NSTask* _helperAppTask;
 	EXMSharedClass* _sharedObject;
 	NSConnection* _connection;
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
 	[self nsConnectionSetup];
 	
 	//Testing
 	_path = [[NSBundle mainBundle] pathForResource:@"SandboxPair" ofType:@"app"];
 	_path = [_path stringByAppendingPathComponent:@"/Contents/MacOS/SandboxPair"];
-	[self runTaskWithLaunchPath:_path];
+	if( ![self runTaskWithLaunchPath:_path] ) {
+		NSLog(@"launching helper app failed");
+	}
 	
 	[self performSelector:@selector(sendFile) withObject:nil afterDelay:2];
 	
 	return;
 }
 
-- (void)applicationWillTerminate:(NSNotification *)aNotification {
+- (void)applicationWillTerminate:(NSNotification *)aNotification
+{
 	[_sharedObject removeObserver:self forKeyPath:@"connectionFlag"];
 }
 
 - (BOOL)runTaskWithLaunchPath:(NSString*)launchPath
 {
-	NSTask* task = [NSTask new];
+	_helperAppTask = [NSTask new];
 	if( ![[NSFileManager defaultManager] fileExistsAtPath:launchPath] )
 	{
 		NSLog(@"ERROR: Not found command %@", launchPath);
 		return NO;
 	}
 	
-	task.launchPath = launchPath;
+	_helperAppTask.launchPath = launchPath;
 	
 	NSPipe* outPipe = [NSPipe pipe];
 	NSPipe* errPipe = [NSPipe pipe];
-	task.standardOutput = outPipe;
-	task.standardError = errPipe;
+	_helperAppTask.standardOutput = outPipe;
+	_helperAppTask.standardError = errPipe;
 	
-	[task launch];
-	
-	int status = 0;
-	errno = 0;
-	return status == 0;
-	
+	[_helperAppTask launch];
+
+	return YES;
 }
 
 ///Setup for NSConnection test

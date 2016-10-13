@@ -16,10 +16,10 @@
 
 @implementation AppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
 	// Insert code here to initialize your application
 	
-
 	id proxy = [NSConnection rootProxyForConnectionWithRegisteredName:@"com.mpogosskiy.SandboxTest.shared" host:nil];
 	[proxy setProtocolForProxy:@protocol(EXMSharedClassProtocol)];
 	[self changeFlag:proxy];
